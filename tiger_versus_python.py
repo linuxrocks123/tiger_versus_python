@@ -1,10 +1,15 @@
 #! /usr/bin/env python
 
+import os
+import tempfile
+
 print "<?xml version='1.0' encoding='UTF-8'?>"
 print '<osmChange version="0.6" generator="tiger_versus_python">'
 print '<create>'
 
-ways = []
+waysfile = tempfile.mkstemp()
+
+waysfile_w = os.fdopen(waysfile[0],'w')
 
 def replace_cardinals(word):
     if word=='N':
@@ -83,8 +88,13 @@ try:
         street_name = '"'+expand_abbreviations(street_name)+'"'
         i+=1
         county = line_parts[i]+"'"
-        i+=1
-        state = "'"+line_parts[i][1:]
+        if county!=" '''":
+            i+=1
+            state = "'"+line_parts[i][1:]
+        else:
+            county = "''''"
+            state = "''"
+        county = county.replace('"',"&quot;").replace("'",'"').replace('""',"'").replace('&',"&amp;").replace('<',"&lt;").replace('>',"&gt;")
         i+=1
         postcode = line_parts[i].split(')')[0]
 
@@ -110,16 +120,21 @@ try:
         print "</node>"
         next_id+=1
 
-        ways.append((range(next_id-len(node_list)-2,next_id),interpolation))
+        waysfile_w.write(repr(next_id-len(node_list)-2)+'\t'+repr(next_id)+'\t'+interpolation+"\n")
 
 except EOFError:
     pass
 
-for way in ways:
+del waysfile_w
+waysfile_r = open(waysfile[1],'r')
+os.unlink(waysfile[1])
+
+for line in waysfile_r:
+    line_parts = line.rstrip("\n").split('\t')
     print "<way id='"+repr(next_id)+"' visible='true' timestamp='1970-01-01T00:00:00Z' version='1'>"
-    for i in way[0]:
+    for i in range(int(line_parts[0]),int(line_parts[1])):
         print "<nd ref='"+repr(i)+"' />"
-    print "<tag k='addr:interpolation' v="+way[1]+" />"
+    print "<tag k='addr:interpolation' v="+line_parts[2]+" />"
     print "<tag k='addr:inclusion' v='potential' />"
     print "</way>"
     next_id+=1
