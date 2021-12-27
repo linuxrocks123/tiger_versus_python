@@ -1,11 +1,11 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 import os
 import tempfile
 
-print "<?xml version='1.0' encoding='UTF-8'?>"
-print '<osmChange version="0.6" generator="tiger_versus_python">'
-print '<create>'
+print("<?xml version='1.0' encoding='UTF-8'?>")
+print('<osmChange version="0.6" generator="tiger_versus_python">')
+print('<create>')
 
 waysfile = tempfile.mkstemp()
 
@@ -59,7 +59,7 @@ def expand_abbreviations(street):
 try:
     next_id = -2000000000
     while True:
-        line = raw_input()
+        line = input()
         line_parts = line.split(',')
 
         node_list = []
@@ -98,26 +98,26 @@ try:
         i+=1
         postcode = line_parts[i].split(')')[0]
 
-        print "<node id='"+repr(next_id)+"' lon='"+first_node[0]+"' lat='"+first_node[1]+"' visible='true' timestamp='1970-01-01T00:00:00Z' version='1'>"
-        print "<tag k='addr:housenumber' v="+first_house_number+" />"
-        print "<tag k='addr:street' v="+street_name+" />"
-        print "<tag k='addr:county' v="+county+" />"
-        print "<tag k='addr:postcode' v="+postcode+" />"
-        print "<tag k='addr:state' v="+state+" />"
-        print "</node>"
+        print("<node id='"+repr(next_id)+"' lon='"+first_node[0]+"' lat='"+first_node[1]+"' visible='true' timestamp='1970-01-01T00:00:00Z' version='1'>")
+        print("<tag k='addr:housenumber' v="+first_house_number+" />")
+        print("<tag k='addr:street' v="+street_name+" />")
+        print("<tag k='addr:county' v="+county+" />")
+        print("<tag k='addr:postcode' v="+postcode+" />")
+        print("<tag k='addr:state' v="+state+" />")
+        print("</node>")
         next_id+=1
 
         for node in node_list:
-            print "<node id='"+repr(next_id)+"' lon='"+node[0]+"' lat='"+node[1]+"' visible='true' timestamp='1970-01-01T00:00:00Z' version='1' />"
+            print("<node id='"+repr(next_id)+"' lon='"+node[0]+"' lat='"+node[1]+"' visible='true' timestamp='1970-01-01T00:00:00Z' version='1' />")
             next_id+=1
 
-        print "<node id='"+repr(next_id)+"' lon='"+last_node[0]+"' lat='"+last_node[1]+"' visible='true' timestamp='1970-01-01T00:00:00Z' version='1'>"
-        print "<tag k='addr:housenumber' v="+last_house_number+" />"
-        print "<tag k='addr:street' v="+street_name+" />"
-        print "<tag k='addr:county' v="+county+" />"
-        print "<tag k='addr:postcode' v="+postcode+" />"
-        print "<tag k='addr:state' v="+state+" />"
-        print "</node>"
+        print("<node id='"+repr(next_id)+"' lon='"+last_node[0]+"' lat='"+last_node[1]+"' visible='true' timestamp='1970-01-01T00:00:00Z' version='1'>")
+        print("<tag k='addr:housenumber' v="+last_house_number+" />")
+        print("<tag k='addr:street' v="+street_name+" />")
+        print("<tag k='addr:county' v="+county+" />")
+        print("<tag k='addr:postcode' v="+postcode+" />")
+        print("<tag k='addr:state' v="+state+" />")
+        print("</node>")
         next_id+=1
 
         waysfile_w.write(repr(next_id-len(node_list)-2)+'\t'+repr(next_id)+'\t'+interpolation+"\n")
@@ -131,13 +131,13 @@ os.unlink(waysfile[1])
 
 for line in waysfile_r:
     line_parts = line.rstrip("\n").split('\t')
-    print "<way id='"+repr(next_id)+"' visible='true' timestamp='1970-01-01T00:00:00Z' version='1'>"
+    print("<way id='"+repr(next_id)+"' visible='true' timestamp='1970-01-01T00:00:00Z' version='1'>")
     for i in range(int(line_parts[0]),int(line_parts[1])):
-        print "<nd ref='"+repr(i)+"' />"
-    print "<tag k='addr:interpolation' v="+line_parts[2]+" />"
-    print "<tag k='addr:inclusion' v='potential' />"
-    print "</way>"
+        print("<nd ref='"+repr(i)+"' />")
+    print("<tag k='addr:interpolation' v="+line_parts[2]+" />")
+    print("<tag k='addr:inclusion' v='potential' />")
+    print("</way>")
     next_id+=1
 
-print "</create>"
-print "</osmChange>"
+print("</create>")
+print("</osmChange>")
