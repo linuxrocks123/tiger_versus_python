@@ -235,13 +235,13 @@ def expand_abbreviations(street):
     return cleanup_full_street(street)
 
 
-def print_full_address_node(next_id, node, house_number, street_name, county, state):
+def print_full_address_node(next_id, node, house_number, street_name, county, postcode, state):
     print(f'<node id="{repr(next_id)}" lon="{node[0]}" lat="{node[1]}" visible="true" timestamp="1970-01-01T00:00:00Z" version="1">')
-    print(f'<tag k="addr:housenumber" v="{house_number}" />')
+    print(f'<tag k="addr:housenumber" v={saxutils.quoteattr(house_number)} />')
     print(f'<tag k="addr:street" v={saxutils.quoteattr(street_name)} />')  # quoteattr adds the correct quotes.
     print(f'<tag k="addr:county" v={saxutils.quoteattr(county)} />')
-    print(f'<tag k="addr:postcode" v="{postcode}" />')
-    print(f'<tag k="addr:state" v="{state}" />')
+    print(f'<tag k="addr:postcode" v={saxutils.quoteattr(postcode)} />')
+    print(f'<tag k="addr:state" v={saxutils.quoteattr(state)} />')
     print("</node>")
 
 
@@ -271,13 +271,6 @@ try:
 
         first_node = geometry[0].split(' ')
 
-        i=1
-        while ')' not in geometry[i]:
-            node_list.append(geometry[i].split(' '))
-            i+=1
-
-        last_node = geometry[i].split(')')[0].split(' ')
-
         first_house_number = line_parts[FROM_COL]
         last_house_number = line_parts[TO_COL]
         interpolation = line_parts[INTERPOLATION_COL]
@@ -286,14 +279,26 @@ try:
         state = line_parts[STATE_COL]
         postcode = line_parts[POSTCODE_COL]
 
-        print_full_address_node(next_id, first_node, first_house_number, street_name, county, state)
+        if first_house_number==last_house_number:
+            print_full_address_node(next_id, first_node, first_house_number, street_name, county, postcode, state)
+            next_id+=1
+            continue
+
+        i=1
+        while ')' not in geometry[i]:
+            node_list.append(geometry[i].split(' '))
+            i+=1
+
+        last_node = geometry[i].split(')')[0].split(' ')
+
+        print_full_address_node(next_id, first_node, first_house_number, street_name, county, postcode, state)
         next_id+=1
 
         for node in node_list:
             print(f'<node id="{repr(next_id)}" lon="{node[0]}" lat="{node[1]}" visible="true" timestamp="1970-01-01T00:00:00Z" version="1" />')
             next_id+=1
 
-        print_full_address_node(next_id, last_node, last_house_number, street_name, county, state)
+        print_full_address_node(next_id, last_node, last_house_number, street_name, county, postcode, state)
         next_id+=1
 
         waysfile_w.write(f"{repr(next_id-len(node_list)-2)}\t{repr(next_id)}\t{interpolation}\n")
