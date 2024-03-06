@@ -1,8 +1,9 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 
 import json
 import string
 import sys
+import re
 
 #This data is of absolutely awful quality, so longitude and latitude are sometimes reversed.
 #Fix this appropriately if your data is not in the Northern Western quadrant of the Earth.
@@ -32,6 +33,9 @@ if file_tokens[-1]=="city":
 elif file_tokens[-1]=="county":
     default_county = file_tokens[0].replace('_',' ').upper()
 
+# All control characters (ASCII 0 - 31 and 127).
+CONTROL_CHARS_RE = re.compile(r'[\x00-\x1F\x7F]')
+
 for line in map(str.rstrip,open(sys.argv[1]).readlines()):
     try:
         address_object = json.loads(line)
@@ -42,7 +46,7 @@ for line in map(str.rstrip,open(sys.argv[1]).readlines()):
     #Some basic sanity checks since the data isn't sane
     if 'properties' not in address_object or not address_object['properties'] or 'geometry' not in address_object or not address_object['geometry'] or 'coordinates' not in address_object['geometry'] or not address_object['geometry']['coordinates']:
         continue
-    
+
     properties = address_object['properties']
     if 'number' not in properties or properties['number']=="" or 'street' not in properties or properties['street']=="":
         continue
@@ -61,9 +65,10 @@ for line in map(str.rstrip,open(sys.argv[1]).readlines()):
     if data_is_fucked(coords):
         sys.stderr.write("Skipping fucked-beyond-repair JSON coordinates of "+repr(coords)+'\n')
         continue
-    
+
     row[7] = '('+repr(coords[0])+' '+repr(coords[1])
-    row = map(string.capwords,row)
+    row = [string.capwords(x) for x in row]
     row[5] = row[5].upper()
-    row = map(lambda x: x.replace(';','#'),row)
-    print "".join(map(lambda x: x if x >= ' ' and x <= '~' else "",';'.join(row).encode('ascii','ignore')))
+    row = [x.replace(';', '#') for x in row]
+    row = [CONTROL_CHARS_RE.sub('', x) for x in row]
+    print(";".join(row))
